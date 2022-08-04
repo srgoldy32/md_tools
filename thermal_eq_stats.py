@@ -8,7 +8,7 @@ def thermal_eq_stats(filename,plot=False):
         lines = f.readlines()
 
     thermal_eq_flag = False
-
+    dump_interval = 1.1
     for i in range(len(lines)):
         spl = lines[i].split()
         if spl == ['#', '----------', 'Thermal', 'Equilibriation', '---------------------']:
