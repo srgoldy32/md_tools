@@ -138,7 +138,7 @@ def parse_ref(ref_filename):
 
 def parse_dump(descriptor,timestep,d0,ne11,ne12,ne23,ones,twos,threes):
     st = time.time()
-    dump-filename = 'out.{}.{}'.format(descriptor,timestep)
+    dump_filename = 'out.{}.{}'.format(descriptor,timestep)
     dd = am.load('atom_dump', dump-filename, symbols='Al')
     dd.atoms.slip_vec = np.zeros([1,3])
     dd.atoms.slip_mag = 0.0
