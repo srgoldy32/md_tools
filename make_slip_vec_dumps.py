@@ -186,7 +186,7 @@ def driver_func(ref_filename, end_filename, timestep):
 
 
 
-if len(sys.argv) != 2:
+if len(sys.argv) != 4:
     print('Incorrect arguments: [ref filename, end filename, timestep]')
 else:
     ref_filename = sys.argv[1]
