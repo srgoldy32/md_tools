@@ -5,7 +5,7 @@ import time
 
 tol=2.98/np.sqrt(3)/2;
 
-def get_slip_1s(i):
+def get_slip_1s(i,dd):
     nlist = ne11[i]
     ref1 = d0.atoms[i].pos
     def1 = dd.atoms[i].pos
@@ -41,7 +41,7 @@ def get_slip_1s(i):
     dd.atoms.prop('slip_mag',i,slip_mag)
     return slip_vec, slip_mag
 
-def get_slip_2s(i):
+def get_slip_2s(i,dd):
     nlist = ne12[i]
     ref1 = d0.atoms[i].pos
     def1 = dd.atoms[i].pos
@@ -81,7 +81,7 @@ def get_slip_2s(i):
     dd.atoms.prop('slip_mag',i,slip_mag)
     return slip_vec, slip_mag
 
-def get_slip_3s(i):
+def get_slip_3s(i,dd):
     nlist = ne23[i]
     ref1 = d0.atoms[i].pos
     def1 = dd.atoms[i].pos
@@ -139,20 +139,20 @@ def parse_ref(ref_filename):
 def parse_dump(descriptor,timestep,d0,ne11,ne12,ne23,ones,twos,threes):
     st = time.time()
     dump_filename = 'out.{}.{}'.format(descriptor,timestep)
-    dd = am.load('atom_dump', dump-filename, symbols='Al')
+    dd = am.load('atom_dump', dump_filename, symbols='Al')
     dd.atoms.slip_vec = np.zeros([1,3])
     dd.atoms.slip_mag = 0.0
 
     for one in ones:
-        get_slip_1s(one)
+        get_slip_1s(one,dd)
 
     for two in twos:
-        get_slip_2s(two)
+        get_slip_2s(two,dd)
         
     for thr in threes:
-        get_slip_3s(thr)
+        get_slip_3s(thr,dd)
 
-    atom_dump = d5.dump('atom_dump')
+    atom_dump = dd.dump('atom_dump')
     slip_filename = 'out.{}.slip.{}'.format(descriptor,timestep)
     f = open(filename, "w")
     f.write(atom_dump)
@@ -170,13 +170,6 @@ def driver_func(ref_filename, end_filename, timestep):
     end = int(split[-1])
     start = int(ref_filename.split(".")[-1])
     times = range(timestep,end+timestep,timestep)
-
-    t_0 = time.time()
-    d0,ne11,ne12,ne23,ones,twos,threes = parse_ref(ref_filename)
-    t_ref = time.time()
-    print("Ref Load time: ",rounad(t_ref-t_0,3))
-
-
     for t in times:
         parse_dump(descriptor,timestep,d0,ne11,ne12,ne23,ones,twos,threes)
 
@@ -191,5 +184,28 @@ if len(sys.argv) != 4:
 else:
     ref_filename = sys.argv[1]
     end_filename = sys.argv[2]
-    timestep = sys.argv[3]
+    timestep = int(sys.argv[3])
+
+    d0 = am.load('atom_dump', ref_filename, symbols='Al')
+    ne11 = am.NeighborList(system=d0, cutoff=4.07)
+    ne12 = am.NeighborList(system=d0, cutoff=3.52)
+    ne23 = am.NeighborList(system=d0, cutoff=2.86)
+    d0.atoms.slip_vec = np.zeros([1,3])
+    d0.atoms.slip_mag = 0.0
+    t_0 = time.time()
+    ones = []
+    twos = []
+    threes = []
+    for i in range(len(d0.atoms)):
+        atype = d0.atoms[i].atype
+        
+        if atype == [1]:
+            ones.append(i)
+        if atype == [2]:
+            twos.append(i)
+        if atype == [3]:
+            threes.append(i)
+    t_ref = time.time()
+    print("Ref Load time: ",round(t_ref-t_0,3))
+
     driver_func(ref_filename,end_filename,timestep)
